@@ -1,0 +1,22 @@
+.ctrl-panel{
+    display: flex;
+    justify-content: center;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+#function-type-input{
+    padding: 10px;
+    margin-right: 10px;
+    font-size: 16px;
+}
+
+#diad-input{
+    margin-right: 10px;
+    font-size: 16px;
+    text-align: center;
+}
+
+#build-button{
+    font-size: 16px;
+    cursor: pointer;
+}

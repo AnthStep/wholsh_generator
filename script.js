@@ -23,12 +23,89 @@ function adamarGenerator(n){
   return matr;
 }
 
-function transformToLineCoordinates(){
+function pellyGenerator(n){
+  let matr = [];
+  for (var i = 0; i < Math.pow(2,n); i++) {
+    matr[i] = [];
+    let binVal = i.toString(2).split("")
+    for (var j = 0; j < Math.pow(2,n); j++) {
+      let x = (j+1)/Math.pow(2,n)
+      binVal.forEach(function(elem,index,arr){
+        if(elem=="1"){
+          let N = arr.length-index
+          matr[i][j] = matr[i][j] ? matr[i][j] * radamaher(x,N) : radamaher(x,N)
+        }
+        if(i.toString(2)=="0"){
+          matr[i][j] = 1
+        }
+      })
+    }
+  }
+  return matr;
+}
 
+function cullyGenerator(n){
+  let matr = [];
+  for (var i = 0; i < Math.pow(2,n); i++) {
+    matr[i] = [];
+    let binVal = rightShiftGrayCode(i,n)
+    for (var j = 0; j < Math.pow(2,n); j++) {
+      let x = (j+1)/Math.pow(2,n)
+      binVal.forEach(function(elem,index,arr){
+        if(elem=="1"){
+          let N = arr.length-index
+          matr[i][j] = matr[i][j] ? matr[i][j] * radamaher(x,N) : radamaher(x,N)
+        }
+        if(i.toString(2)=="0"){
+          matr[i][j] = 1
+        }
+      })
+    }
+  }
+  return matr;
+}
+
+function rightShiftGrayCode(i,n){
+  let binVal = i.toString(2).split("");
+  if(binVal.length < n){
+    let additionalZeros = Array(n - binVal.length+1).join('0').split('')
+    Array.prototype.unshift.apply(binVal,additionalZeros)
+  }
+  binVal.forEach(function(elem,index,arr){
+    if(index!=arr.length-1){
+      arr[index] = (elem ^ arr[index+1])+"";
+    }
+  })
+
+  return binVal;
+}
+
+console.log(cullyGenerator(2))
+
+function transformToLineCoordinates(dataArr){
+  let coordinatesNodes = []
+  let currentLevel;
+  for (let i = 0; i < dataArr.length; i++) {
+    if(i==0){
+      coordinatesNodes.push({x:0,y:dataArr[i]})
+      currentLevel = {val:dataArr[i],index: i} 
+    }else if(dataArr[i] != currentLevel.val){
+      coordinatesNodes.push({x:i/dataArr.length,y:currentLevel.val})
+      coordinatesNodes.push({x:i/dataArr.length,y:dataArr[i]})
+      currentLevel = {val:dataArr[i],index: i} 
+    }
+    if(i==dataArr.length-1){
+      coordinatesNodes.push({x:1,y:currentLevel.val})
+    }
+  }
+  return coordinatesNodes
+}
+
+function getCoordinateMatr(dataArr){
+  return dataArr.map(val=>transformToLineCoordinates(val))
 }
 
 function drawGraphs(data,name){
-
 
   let body = d3.select("body")
   let graphs = body
@@ -43,7 +120,10 @@ function drawGraphs(data,name){
     .append("g")
     .attr("width","100%")
     .attr("height","100%")
-
+  let linearGraph = graphs
+    .append("g")
+    .attr("width","100%")
+    .attr("height","100%")
 
 
   let headerBackground = controlGroup
@@ -76,6 +156,7 @@ function drawGraphs(data,name){
     .call(xAxisRange)
     .attr("transform",`translate(${Math.floor(graphs.node().getBBox().width*0.05)},170)`)
 
+
   let yAxisScale = d3.scaleLinear()
     .domain([-2,2])
     .range([0,200])
@@ -87,26 +168,37 @@ function drawGraphs(data,name){
     .call(yAxisRange)
     .attr("transform", `translate(${Math.floor(graphs.node().getBBox().width*0.05)-1},70)`)
   
+
+  var lineFunction = d3.line().x(function(d) { return d.x*Math.floor(graphs.node().getBBox().width*0.9)}).y(function(d) { return 0-d.y*50; });
+
+  var lineGraph = linearGraph.append("path")
+      .datum(d=>transformToLineCoordinates(d))
+      .attr("d", lineFunction)
+      .attr("stroke", "blue")
+      .attr("stroke-width", 2)
+      .attr("fill", "none")
+      .attr("transform", `translate(${Math.floor(graphs.node().getBBox().width*0.05)},170)`)
 };
 
-drawGraphs(adamarGenerator(5),"Adamar")
+document.getElementById("build-button").addEventListener("click",function(){
+  d3.select("body").selectAll("svg").remove();
+  let options = {
+    adam: {func:adamarGenerator,label:"Adamar"},
+    pel: {func:pellyGenerator,label:"Pelly"},
+    cul: {func:cullyGenerator,label:"Cully"}
+  }
+  let labels = {
+    adam: "Adamar",
+    pel: "Pelly",
+    cul: "Cully"
+  }
+  let selectedFunc = document.getElementById("function-type-input").value;
+  let diada = Number(document.getElementById("diad-input").value)
 
-// let svgContainer = d3
-// .select("body")
-// .append("svg")
-// .attr("width","500px")
-// .attr("height","500px")
+  if(diada>8){
+    diada = 8;
+    document.getElementById("diad-input").value = 8;
+  }
 
-// let circleRads = [1,2,3,4,5,6,7]
-
-// let circles = svgContainer
-// .selectAll("circle")
-// .data(circleRads)
-// .enter()
-// .append("circle")
-
-// let circlesAttr = circles
-// .attr("cx","50%")
-// .attr("cy","50%")
-// .attr("r",d=>80 - d*10)
-// .style("fill",d=>`rgb(${Math.floor(d*255/7)},${Math.floor(d*255/8)},${Math.floor(d*255/7)})`)
+  drawGraphs(options[selectedFunc].func(diada),options[selectedFunc].label)
+})
