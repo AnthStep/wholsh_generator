@@ -180,6 +180,8 @@ function drawGraphs(data,name){
       .attr("transform", `translate(${Math.floor(graphs.node().getBBox().width*0.05)},170)`)
 };
 
+drawGraphs(adamarGenerator(1),"Adamar")
+
 document.getElementById("build-button").addEventListener("click",function(){
   d3.select("body").selectAll("svg").remove();
   let options = {
@@ -189,16 +191,11 @@ document.getElementById("build-button").addEventListener("click",function(){
   }
   let labels = {
     adam: "Adamar",
-    pel: "Pelly",
-    cul: "Cully"
+    pel: "Pely",
+    cul: "Culy"
   }
   let selectedFunc = document.getElementById("function-type-input").value;
   let diada = Number(document.getElementById("diad-input").value)
-
-  if(diada>8){
-    diada = 8;
-    document.getElementById("diad-input").value = 8;
-  }
 
   drawGraphs(options[selectedFunc].func(diada),options[selectedFunc].label)
 })
